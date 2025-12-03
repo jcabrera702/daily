@@ -7,12 +7,10 @@
 <title>Shared Daily Tasks</title>
 <meta name="theme-color" content="#6c5ce7" />
 
-<!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json" />
 
 <style>
-/* SAME DESIGN AS YOUR ORIGINAL APP, SLIGHTLY IMPROVED */
-
+/* SAME DESIGN AS BEFORE (unchanged) */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Trebuchet MS", sans-serif; }
 body {
     background: radial-gradient(ellipse at top left, #11043a 0%, #06021a 40%, #000 100%);
@@ -22,6 +20,7 @@ body {
 h1 {
     font-size: 2rem;
     margin-bottom: 6px;
+    cursor: pointer; /* editable title */
 }
 .subtitle { opacity: .85; margin-bottom: 20px; }
 
@@ -96,7 +95,7 @@ button.btn {
 </head>
 <body>
 
-<h1>Shared Daily Tasks</h1>
+<h1 id="group-title">Shared Daily Tasks</h1>
 <div class="subtitle">Syncs live with anyone you share this with.</div>
 
 <div id="add-area">
@@ -109,18 +108,12 @@ button.btn {
 
 <div id="modal-root" style="display:none;"></div>
 
-<!-- Firebase (required scripts) -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
 
 <script>
-/* ===========================
-   🔥 1. Initialize Firebase
-   ---------------------------
-   YOU MUST INSERT YOUR OWN
-   FIREBASE CONFIG BELOW
-=========================== */
-
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "REDACTED_API_KEY",
   authDomain: "daily-28c11.firebaseapp.com",
@@ -131,18 +124,13 @@ const firebaseConfig = {
   appId: "1:71161943370:web:c63ec6e9a5dc619d57ddb3",
   measurementId: "G-GPPCWN5BK9"
 };
-
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-/* ==========================================================
-   GROUP SYSTEM
-========================================================== */
 
+/* GROUP SYSTEM */
 function getGroupId() {
     const params = new URLSearchParams(window.location.search);
     let group = params.get("group");
-
     if (!group) {
         group = "group-" + Math.random().toString(36).substring(2, 8);
         params.set("group", group);
@@ -150,10 +138,12 @@ function getGroupId() {
     }
     return group;
 }
-
 const GROUP_ID = getGroupId();
+
+const GROUP_META_REF = db.ref(`groups/${GROUP_ID}/meta`);
 const TASKS_REF = db.ref(`groups/${GROUP_ID}/tasks`);
 
+/* Insert group ID UI */
 document.body.insertAdjacentHTML("afterbegin", `
     <div style="margin-bottom: 12px; opacity: .9; font-size: .9rem;">
         Group: <b>${GROUP_ID}</b>
@@ -162,26 +152,54 @@ document.body.insertAdjacentHTML("afterbegin", `
         </button>
     </div>
 `);
-
 document.getElementById("copy-link-btn").onclick = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert("Invite link copied! Share this with others to join the same group.");
+    alert("Invite link copied!");
 };
 
+/* ===========================
+   Editable Group Title
+=========================== */
 
-/* ==========================================================
-   2. App Logic Same As Before — But Syncs to Firebase
-========================================================== */
+const titleEl = document.getElementById("group-title");
 
-const MS_PER_24H = 24 * 60 * 60 * 1000;
+titleEl.addEventListener("click", () => {
+    const newTitle = prompt("Edit group title:", titleEl.textContent);
+    if (!newTitle) return;
 
-function now() { return Date.now(); }
+    GROUP_META_REF.update({ title: newTitle });
+});
 
-function healthPercent(lastDone) {
-    const elapsed = now() - lastDone;
-    return Math.max(0, Math.round(100 - (elapsed / MS_PER_24H * 100)));
+GROUP_META_REF.on("value", snap => {
+    const data = snap.val();
+    if (data && data.title) {
+        titleEl.textContent = data.title;
+    }
+});
+
+/* ===========================
+   User Name Gathering
+=========================== */
+function getUserName() {
+    let name = localStorage.getItem("taskUserName");
+    if (!name) {
+        name = prompt("What is your name?");
+        if (!name) name = "Unknown";
+        localStorage.setItem("taskUserName", name);
+    }
+    return name;
 }
 
+/* ===========================
+   Task Logic
+=========================== */
+
+const MS_PER_24H = 24 * 60 * 60 * 1000;
+function now() { return Date.now(); }
+function healthPercent(t) {
+    const elapsed = now() - t;
+    return Math.max(0, Math.round(100 - (elapsed / MS_PER_24H * 100)));
+}
 function formatTimeLeft(ms) {
     if (ms <= 0) return "Expired";
     const s = Math.floor(ms / 1000);
@@ -213,12 +231,18 @@ function showModal(opts) {
 
 function addTask(name) {
     const id = Date.now();
+    const user = getUserName();
     TASKS_REF.child(id).set({
-        id, name, lastDone: now()
+        id,
+        name,
+        lastDone: now(),
+        createdBy: user,
+        lastDoneBy: user
     });
 }
 
 async function completeTask(id, task) {
+    const user = getUserName();
     const ok = await showModal({
         title: "Complete task?",
         message: `Refill health for "${task.name}"?`,
@@ -226,7 +250,7 @@ async function completeTask(id, task) {
     });
     if (!ok) return;
 
-    TASKS_REF.child(id).update({ lastDone: now() });
+    TASKS_REF.child(id).update({ lastDone: now(), lastDoneBy: user });
 }
 
 async function deleteTask(id, task) {
@@ -236,7 +260,6 @@ async function deleteTask(id, task) {
         confirmText: "Delete"
     });
     if (!ok) return;
-
     TASKS_REF.child(id).remove();
 }
 
@@ -271,12 +294,11 @@ function buildTaskCard(task) {
         hp > 60 ? "linear-gradient(90deg,#32ff4d,#4dff87)" :
         hp > 30 ? "linear-gradient(90deg,#ffdd00,#ffb300)" :
                   "linear-gradient(90deg,#ff4d4d,#ff1a1a)";
-
     barWrap.appendChild(bar);
 
     const last = document.createElement("div");
     last.className = "small";
-    last.textContent = "Last done: " + new Date(task.lastDone).toLocaleString();
+    last.textContent = `Last done by: ${task.lastDoneBy || "Unknown"} on ${new Date(task.lastDone).toLocaleString()}`;
 
     const timeLeft = document.createElement("div");
     timeLeft.className = "small";
@@ -319,21 +341,18 @@ function render(tasks) {
     });
 }
 
-/* LIVE SYNC — LISTEN FOR CHANGES */
 TASKS_REF.on("value", snap => {
     const tasks = snap.val() || {};
     render(tasks);
 });
 
-/* INPUT HANDLERS */
+/* Input handlers */
 document.getElementById("add-btn").onclick = () => {
     const name = document.getElementById("task-name").value.trim();
     if (name) addTask(name);
     document.getElementById("task-name").value = "";
 };
-
 document.getElementById("clear-btn").onclick = clearAll;
-
 document.getElementById("task-name").onkeydown = e => {
     if (e.key === "Enter") {
         const name = e.target.value.trim();
