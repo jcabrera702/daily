@@ -90,6 +90,62 @@ button.btn {
 .modal button { padding:8px 12px; border-radius:8px; border:none; font-weight:700; }
 .modal .confirm { background:#32ff4d; }
 .modal .cancel { background:#ffffff22; color:#fff; }
+/* --- ONE-LINE FADE EFFECT --- */
+.one-line-fade {
+    position: relative;
+    max-height: 1.4em;       /* 1 line */
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.one-line-fade::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 60px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(0,0,0,0.65));
+}
+
+/* --- FULL INFO MODAL --- */
+.full-info-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.full-info-box {
+    max-width: 90%;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 22px;
+    color: #fff;
+    text-align: left;
+    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.full-info-box h2 {
+    margin-bottom: 12px;
+    font-size: 1.3rem;
+}
+
+.full-info-box p {
+    line-height: 1.5;
+    opacity: .95;
+}
+
 </style>
 
 </head>
@@ -106,6 +162,7 @@ button.btn {
 
 <div id="tasks-container"></div>
 
+<div id="full-info-root" style="display:none;"></div>
 <div id="modal-root" style="display:none;"></div>
 
 <!-- Firebase -->
@@ -274,13 +331,42 @@ async function clearAll() {
     TASKS_REF.remove();
 }
 
+/* ===========================
+   FULL INFO MODAL (TASK TITLE EXPANSION)
+=========================== */
+
+function showFullInfo(task) {
+    const root = document.getElementById("full-info-root");
+    root.style.display = "";
+
+    root.innerHTML = `
+        <div class="full-info-backdrop" id="fib">
+            <div class="full-info-box">
+                <h2>Task Details</h2>
+                <p>${task.name}</p>
+            </div>
+        </div>
+    `;
+
+    // Clicking anywhere closes it
+    document.getElementById("fib").onclick = () => {
+        root.style.display = "none";
+        root.innerHTML = "";
+    };
+}
+
+
 function buildTaskCard(task) {
     const card = document.createElement("div");
     card.className = "task";
 
     const title = document.createElement("div");
     title.className = "task-title";
-    title.textContent = task.name;
+    title.innerHTML = `
+    <div class="one-line-fade">${task.name}</div>
+`;
+title.onclick = () => showFullInfo(task);
+
 
     const barWrap = document.createElement("div");
     barWrap.className = "bar-wrapper";
