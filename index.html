@@ -3,299 +3,255 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Daily Tasking — 24h Health</title>
+
+<title>Shared Daily Tasks</title>
 <meta name="theme-color" content="#6c5ce7" />
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json" />
+
 <style>
-/* =============================
-   GLOBAL / THEME
-   (inspired by your uploaded file)
-   ============================= */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Trebuchet MS", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-html,body { height: 100%; }
+/* SAME DESIGN AS YOUR ORIGINAL APP, SLIGHTLY IMPROVED */
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Trebuchet MS", sans-serif; }
 body {
-  background: radial-gradient(ellipse at top left, #11043a 0%, #06021a 40%, #000 100%);
-  color: #fff;
-  padding: 22px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    background: radial-gradient(ellipse at top left, #11043a 0%, #06021a 40%, #000 100%);
+    color: #fff;
+    padding: 22px;
 }
-
-/* header */
-header { display:flex; align-items:center; gap:16px; margin-bottom:18px; }
 h1 {
-  font-size: 1.8rem;
-  text-shadow: 3px 3px 0 #000;
-  letter-spacing: 0.3px;
+    font-size: 2rem;
+    margin-bottom: 6px;
 }
-.subtitle { opacity: .9; font-size: .92rem; }
+.subtitle { opacity: .85; margin-bottom: 20px; }
 
-/* add area */
-#add-area { display:flex; gap:10px; margin: 18px 0 26px; }
+#add-area { display:flex; gap:10px; margin-bottom: 20px; }
 #task-name {
-  flex: 1; padding: 12px 14px; border-radius: 10px; border: none; font-size: 1rem;
-  outline: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-  color: #fff;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+    flex:1; padding:12px; border-radius:8px; border:none; background:#ffffff0a; color:#fff;
 }
 button.btn {
-  padding: 12px 14px; border-radius: 10px; border: none; cursor: pointer; font-weight:700;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    padding: 12px 16px;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 0 10px #000;
 }
-#add-btn { background: linear-gradient(90deg,#FFF4C2,#FFD700,#CC9A00); color:#000; }
-#clear-btn { background: rgba(255,255,255,0.06); color:#fff; }
+#add-btn { background:linear-gradient(90deg,#FFF4C2,#FFD700,#CC9A00); color:#000; }
+#clear-btn { background:#ffffff26; color:#fff; }
 
-/* container */
-#tasks-container { display:flex; flex-direction:column; gap:18px; max-width:900px; margin:0 auto; }
+#tasks-container { display:flex; flex-direction:column; gap:20px; }
 
-/* task card */
 .task {
-  padding: 16px;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(90deg, rgba(0,0,80,0.6), rgba(38,23,6,0.12));
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.04);
+    background:linear-gradient(90deg, rgba(0,0,80,0.6), rgba(38,23,6,0.12));
+    padding:18px;
+    border-radius:14px;
+    position:relative;
+    box-shadow:0 0 25px rgba(0,0,0,0.6);
 }
-.task::before {
-  content:""; position:absolute; inset:0; background: gold; opacity:0.06; pointer-events:none; mix-blend-mode:screen;
-}
-.task-title { font-size:1.15rem; font-weight:800; margin-bottom:10px; }
+.task-title { font-size:1.25rem; margin-bottom:10px; }
 
-/* health bar */
 .bar-wrapper {
-  width:100%; height:28px; background: rgba(255,255,255,0.07); border-radius:14px; overflow:hidden;
-  border: 1px solid rgba(255,255,255,0.03);
+    width:100%; height:28px; border-radius:14px;
+    background:#ffffff1a;
+    margin-bottom:10px;
 }
 .health-bar {
-  height:100%; width:100%;
-  transition: width 700ms linear, background 400ms linear;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+    height:100%;
+    transition:width .5s linear;
 }
-.meta-row { display:flex; gap:12px; align-items:center; margin-top:10px; font-size:.88rem; opacity:.9; }
-.time-left { margin-left: auto; font-weight:700; }
 
-/* buttons row */
-.btn-row { display:flex; gap:10px; margin-top:12px; align-items:center; }
-.complete-btn { background: linear-gradient(90deg,#32ff4d,#4dff87); color:#000; padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
-.complete-btn:hover { filter:brightness(1.03); }
-.delete-btn { background: linear-gradient(90deg,#ff4d4d,#ff1a1a); color:#fff; padding:8px 12px; border-radius:8px; border:none; cursor:pointer; margin-left:auto; font-weight:700; }
+.small { font-size:.85rem; opacity:.85; }
 
-/* small */
-.small { font-size:.82rem; opacity:.85; }
-
-/* modal */
-.modal-backdrop { position:fixed; inset:0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:1000; }
-.modal { background: linear-gradient(180deg,#0e153a,#07061a); padding:18px; border-radius:10px; width:92%; max-width:420px; box-shadow: 0 12px 40px rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.05); color:#fff; }
-.modal h3 { margin-bottom:10px; }
-.modal p { margin-bottom:14px; opacity:.95; }
-.modal .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
-.modal .modal-actions button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
-.modal .confirm { background: linear-gradient(90deg,#32ff4d,#4dff87); color:#000; }
-.modal .cancel { background: rgba(255,255,255,0.08); color:#fff; }
-
-/* responsive */
-@media (max-width:640px) {
-  header { flex-direction: column; align-items:flex-start; gap:8px; }
-  .time-left { display:none; }
+.btn-row { display:flex; gap:10px; margin-top:10px; }
+.complete-btn {
+    padding:8px 12px; border:none; border-radius:8px; background:linear-gradient(90deg,#32ff4d,#4dff87);
+    font-weight:700; cursor:pointer;
 }
+.delete-btn {
+    padding:8px 12px; border:none; border-radius:8px; background:linear-gradient(90deg,#ff4d4d,#ff1a1a);
+    font-weight:700; cursor:pointer; margin-left:auto;
+}
+
+/* MODAL */
+.modal-backdrop {
+    position:fixed; inset:0; background:#00000088;
+    display:flex; justify-content:center; align-items:center;
+}
+.modal {
+    width:90%; max-width:400px;
+    background:#0e153a;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 20px #000;
+}
+.modal-actions {
+    display:flex; justify-content:flex-end; gap:10px; margin-top:20px;
+}
+.modal button { padding:8px 12px; border-radius:8px; border:none; font-weight:700; }
+.modal .confirm { background:#32ff4d; }
+.modal .cancel { background:#ffffff22; color:#fff; }
 </style>
+
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>Daily Tasks</h1>
-    <div class="subtitle">Health drains from 100 → 0 over 24 hours. Complete to refill.</div>
-  </div>
-</header>
+<h1>Shared Daily Tasks</h1>
+<div class="subtitle">Syncs live with anyone you share this with.</div>
 
-<div id="add-area" aria-label="Add task">
-  <input id="task-name" type="text" placeholder="New task (press Enter or Add)..." aria-label="Task name" />
-  <button id="add-btn" class="btn">Add</button>
-  <button id="clear-btn" class="btn" title="Clear all tasks">Clear All</button>
+<div id="add-area">
+    <input id="task-name" placeholder="New task..." />
+    <button id="add-btn" class="btn">Add</button>
+    <button id="clear-btn" class="btn">Clear</button>
 </div>
 
-<main id="tasks-container" aria-live="polite">
-  <!-- Task cards rendered here -->
-</main>
+<div id="tasks-container"></div>
 
-<!-- Confirmation modal (reused for delete/complete) -->
 <div id="modal-root" style="display:none;"></div>
 
+<!-- Firebase (required scripts) -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
 <script>
-/*
-  Daily Tasking App
-  - Health decays linearly over 24 hours (100% → 0%)
-  - Complete resets health (lastDone = now)
-  - Confirm before completing or deleting
-  - Persist to localStorage
-  - Render updates every second
-  - Based on your uploaded skilldecay.html as reference. (See file used.) :contentReference[oaicite:1]{index=1}
-*/
+/* ===========================
+   🔥 1. Initialize Firebase
+   ---------------------------
+   YOU MUST INSERT YOUR OWN
+   FIREBASE CONFIG BELOW
+=========================== */
 
-(() => {
-  const STORAGE_KEY = "dailyTasks_v1";
-  const MS_PER_24H = 24 * 60 * 60 * 1000;
+const firebaseConfig = {
+  apiKey: "REDACTED_API_KEY",
+  authDomain: "daily-28c11.firebaseapp.com",
+  databaseURL: "https://daily-28c11-default-rtdb.firebaseio.com",
+  projectId: "daily-28c11",
+  storageBucket: "daily-28c11.firebasestorage.app",
+  messagingSenderId: "71161943370",
+  appId: "1:71161943370:web:c63ec6e9a5dc619d57ddb3",
+  measurementId: "G-GPPCWN5BK9"
+};
 
-  // app state
-  let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-  // helpers
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+/* ==========================================================
+   GROUP SYSTEM
+========================================================== */
 
-  function now() { return Date.now(); }
+function getGroupId() {
+    const params = new URLSearchParams(window.location.search);
+    let group = params.get("group");
 
-  // compute health percentage (0..100) based on lastDone timestamp
-  function healthPercent(lastDone) {
-    const elapsed = Math.max(0, now() - lastDone);
-    const pct = Math.max(0, 100 - (elapsed / MS_PER_24H) * 100);
-    return Math.round(pct);
-  }
+    if (!group) {
+        group = "group-" + Math.random().toString(36).substring(2, 8);
+        params.set("group", group);
+        window.history.replaceState({}, "", `${location.pathname}?${params}`);
+    }
+    return group;
+}
 
-  function timeRemainingMs(lastDone) {
-    const elapsed = Math.max(0, now() - lastDone);
-    const remaining = Math.max(0, MS_PER_24H - elapsed);
-    return remaining;
-  }
+const GROUP_ID = getGroupId();
+const TASKS_REF = db.ref(`groups/${GROUP_ID}/tasks`);
 
-  function formatTimeLeft(ms) {
+document.body.insertAdjacentHTML("afterbegin", `
+    <div style="margin-bottom: 12px; opacity: .9; font-size: .9rem;">
+        Group: <b>${GROUP_ID}</b>
+        <button id="copy-link-btn" style="margin-left:10px; padding:6px 10px; font-size:.8rem; border:none; border-radius:6px; cursor:pointer;">
+            Copy Invite Link
+        </button>
+    </div>
+`);
+
+document.getElementById("copy-link-btn").onclick = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Invite link copied! Share this with others to join the same group.");
+};
+
+
+/* ==========================================================
+   2. App Logic Same As Before — But Syncs to Firebase
+========================================================== */
+
+const MS_PER_24H = 24 * 60 * 60 * 1000;
+
+function now() { return Date.now(); }
+
+function healthPercent(lastDone) {
+    const elapsed = now() - lastDone;
+    return Math.max(0, Math.round(100 - (elapsed / MS_PER_24H * 100)));
+}
+
+function formatTimeLeft(ms) {
     if (ms <= 0) return "Expired";
     const s = Math.floor(ms / 1000);
-    const hours = Math.floor(s / 3600);
-    const minutes = Math.floor((s % 3600) / 60);
-    const seconds = s % 60;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m ${seconds}s`;
-  }
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
 
-  // DOM refs
-  const container = document.getElementById("tasks-container");
-  const input = document.getElementById("task-name");
-  const addBtn = document.getElementById("add-btn");
-  const clearBtn = document.getElementById("clear-btn");
-  const modalRoot = document.getElementById("modal-root");
-
-  // Create a confirmation modal, returns a Promise resolving true if confirmed
-  function confirmAction({ title = "Confirm", message = "", confirmText = "Yes", cancelText = "Cancel" } = {}) {
+function showModal(opts) {
     return new Promise(resolve => {
-      // build modal
-      modalRoot.innerHTML = `
-        <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-          <div class="modal" role="document">
-            <h3 id="modal-title"></h3>
-            <p id="modal-msg"></p>
-            <div class="modal-actions">
-              <button class="cancel" id="modal-cancel">${cancelText}</button>
-              <button class="confirm" id="modal-confirm">${confirmText}</button>
+        const modalRoot = document.getElementById("modal-root");
+        modalRoot.style.display = "";
+        modalRoot.innerHTML = `
+            <div class="modal-backdrop">
+                <div class="modal">
+                    <h3>${opts.title}</h3>
+                    <p>${opts.message}</p>
+                    <div class="modal-actions">
+                        <button class="cancel">Cancel</button>
+                        <button class="confirm">${opts.confirmText}</button>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      `;
-      modalRoot.style.display = "";
-
-      // set text securely
-      const titleEl = modalRoot.querySelector("#modal-title");
-      const msgEl = modalRoot.querySelector("#modal-msg");
-      titleEl.textContent = title;
-      msgEl.textContent = message;
-
-      const confirmBtn = modalRoot.querySelector("#modal-confirm");
-      const cancelBtn = modalRoot.querySelector("#modal-cancel");
-
-      function cleanup() {
-        modalRoot.innerHTML = "";
-        modalRoot.style.display = "none";
-        confirmBtn.removeEventListener("click", onConfirm);
-        cancelBtn.removeEventListener("click", onCancel);
-        document.removeEventListener("keydown", onKey);
-      }
-      function onConfirm() { cleanup(); resolve(true); }
-      function onCancel() { cleanup(); resolve(false); }
-      function onKey(e) {
-        if (e.key === "Escape") { onCancel(); }
-        if (e.key === "Enter") { onConfirm(); }
-      }
-
-      confirmBtn.addEventListener("click", onConfirm);
-      cancelBtn.addEventListener("click", onCancel);
-      document.addEventListener("keydown", onKey);
-      // focus confirm for keyboard users
-      confirmBtn.focus();
+        `;
+        modalRoot.querySelector(".cancel").onclick = () => { modalRoot.style.display = "none"; resolve(false); };
+        modalRoot.querySelector(".confirm").onclick = () => { modalRoot.style.display = "none"; resolve(true); };
     });
-  }
+}
 
-  // Add new task
-  function addTask(name) {
-    if (!name || !name.trim()) return;
-    const task = {
-      id: Date.now() + Math.floor(Math.random() * 999),
-      name: name.trim(),
-      lastDone: Date.now()
-    };
-    tasks.unshift(task); // newest first
-    save();
-    render(); // immediate render
-  }
+function addTask(name) {
+    const id = Date.now();
+    TASKS_REF.child(id).set({
+        id, name, lastDone: now()
+    });
+}
 
-  // Mark as complete (with confirmation)
-  async function completeTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const ok = await confirmAction({
-      title: "Mark task complete?",
-      message: `Mark "${task.name}" as done now? This will refill the health bar.`,
-      confirmText: "Complete",
-      cancelText: "Cancel"
+async function completeTask(id, task) {
+    const ok = await showModal({
+        title: "Complete task?",
+        message: `Refill health for "${task.name}"?`,
+        confirmText: "Complete"
     });
     if (!ok) return;
-    task.lastDone = Date.now();
-    save();
-    render();
-  }
 
-  // Delete a task (with confirmation)
-  async function deleteTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const ok = await confirmAction({
-      title: "Delete task?",
-      message: `Are you sure you want to delete "${task.name}"? This cannot be undone.`,
-      confirmText: "Delete",
-      cancelText: "Keep"
+    TASKS_REF.child(id).update({ lastDone: now() });
+}
+
+async function deleteTask(id, task) {
+    const ok = await showModal({
+        title: "Delete task",
+        message: `Delete "${task.name}"?`,
+        confirmText: "Delete"
     });
     if (!ok) return;
-    tasks = tasks.filter(t => t.id !== id);
-    save();
-    render();
-  }
 
-  // Clear all tasks (with confirmation)
-  async function clearAll() {
-    if (tasks.length === 0) return;
-    const ok = await confirmAction({
-      title: "Clear all tasks?",
-      message: `Remove all ${tasks.length} tasks from storage?`,
-      confirmText: "Clear All",
-      cancelText: "Cancel"
+    TASKS_REF.child(id).remove();
+}
+
+async function clearAll() {
+    const ok = await showModal({
+        title: "Clear all tasks?",
+        message: "This cannot be undone.",
+        confirmText: "Clear"
     });
     if (!ok) return;
-    tasks = [];
-    save();
-    render();
-  }
 
-  // Build a single task card safely (no innerHTML from user)
-  function buildTaskCard(task) {
-    const health = healthPercent(task.lastDone);
-    let color;
-    if (health > 60) color = "linear-gradient(90deg,#32ff4d,#4dff87)";
-    else if (health > 30) color = "linear-gradient(90deg,#ffdd00,#ffb300)";
-    else color = "linear-gradient(90deg,#ff4d4d,#ff1a1a)";
+    TASKS_REF.remove();
+}
 
+function buildTaskCard(task) {
     const card = document.createElement("div");
     card.className = "task";
 
@@ -308,141 +264,83 @@ button.btn {
 
     const bar = document.createElement("div");
     bar.className = "health-bar";
-    bar.style.width = health + "%";
-    bar.style.background = color;
-    bar.setAttribute("aria-valuenow", String(health));
-    bar.setAttribute("role", "progressbar");
-    bar.setAttribute("aria-label", `${task.name} health`);
+
+    const hp = healthPercent(task.lastDone);
+    bar.style.width = hp + "%";
+    bar.style.background =
+        hp > 60 ? "linear-gradient(90deg,#32ff4d,#4dff87)" :
+        hp > 30 ? "linear-gradient(90deg,#ffdd00,#ffb300)" :
+                  "linear-gradient(90deg,#ff4d4d,#ff1a1a)";
 
     barWrap.appendChild(bar);
 
-    const meta = document.createElement("div");
-    meta.className = "meta-row";
-
     const last = document.createElement("div");
     last.className = "small";
-    const readable = new Date(task.lastDone).toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-    last.textContent = `Last completed: ${readable}`;
+    last.textContent = "Last done: " + new Date(task.lastDone).toLocaleString();
 
     const timeLeft = document.createElement("div");
-    timeLeft.className = "time-left small";
-    timeLeft.textContent = formatTimeLeft(timeRemainingMs(task.lastDone));
-
-    meta.appendChild(last);
-    meta.appendChild(timeLeft);
+    timeLeft.className = "small";
+    const remainingMs = MS_PER_24H - (now() - task.lastDone);
+    timeLeft.textContent = "Expires in: " + formatTimeLeft(remainingMs);
 
     const btnRow = document.createElement("div");
     btnRow.className = "btn-row";
 
-    const completeBtn = document.createElement("button");
-    completeBtn.className = "complete-btn";
-    completeBtn.type = "button";
-    completeBtn.textContent = "Complete";
-    completeBtn.addEventListener("click", () => completeTask(task.id));
+    const cBtn = document.createElement("button");
+    cBtn.className = "complete-btn";
+    cBtn.textContent = "Complete";
+    cBtn.onclick = () => completeTask(task.id, task);
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-btn";
-    deleteBtn.type = "button";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => deleteTask(task.id));
+    const dBtn = document.createElement("button");
+    dBtn.className = "delete-btn";
+    dBtn.textContent = "Delete";
+    dBtn.onclick = () => deleteTask(task.id, task);
 
-    btnRow.appendChild(completeBtn);
-    btnRow.appendChild(deleteBtn);
+    btnRow.appendChild(cBtn);
+    btnRow.appendChild(dBtn);
 
     card.appendChild(title);
     card.appendChild(barWrap);
-    card.appendChild(meta);
+    card.appendChild(last);
+    card.appendChild(timeLeft);
     card.appendChild(btnRow);
 
-    // attach for future updates (so we can update width and time-left without re-creating entire DOM)
-    card._bar = bar;
-    card._timeLeft = timeLeft;
-    card._taskId = task.id;
-
     return card;
-  }
+}
 
-  // Render all tasks
-  function render() {
-    // sort tasks by health ascending (lowest first) to surface tasks needing attention
-    const tasksWithHealth = tasks.map(t => ({ ...t, health: healthPercent(t.lastDone) }));
-    tasksWithHealth.sort((a,b) => a.health - b.health);
-
-    // Reconcile DOM nodes: simple approach - clear and recreate for clarity & safety
+function render(tasks) {
+    const container = document.getElementById("tasks-container");
     container.innerHTML = "";
-    if (tasksWithHealth.length === 0) {
-      const note = document.createElement("div");
-      note.className = "small";
-      note.style.opacity = ".9";
-      note.style.textAlign = "center";
-      note.style.padding = "28px";
-      note.textContent = "No tasks yet. Add one above to start tracking daily health.";
-      container.appendChild(note);
-      return;
-    }
 
-    tasksWithHealth.forEach(task => {
-      const card = buildTaskCard(task);
-      container.appendChild(card);
+    Object.values(tasks || {}).sort((a,b) =>
+        healthPercent(a.lastDone) - healthPercent(b.lastDone)
+    ).forEach(task => {
+        container.appendChild(buildTaskCard(task));
     });
-  }
+}
 
-  // Gradual live update: update widths & timers without rebuilding everything every second
-  function liveUpdate() {
-    const cards = Array.from(container.children);
-    if (cards.length === 0) return;
-    cards.forEach(card => {
-      const id = card._taskId;
-      if (!id) return;
-      const task = tasks.find(t => t.id === id);
-      if (!task) return;
-      const hp = healthPercent(task.lastDone);
-      const remainingMs = timeRemainingMs(task.lastDone);
-      // update bar & time text if changed
-      if (card._bar) card._bar.style.width = hp + "%";
-      if (card._bar) {
-        let color;
-        if (hp > 60) color = "linear-gradient(90deg,#32ff4d,#4dff87)";
-        else if (hp > 30) color = "linear-gradient(90deg,#ffdd00,#ffb300)";
-        else color = "linear-gradient(90deg,#ff4d4d,#ff1a1a)";
-        card._bar.style.background = color;
-      }
-      if (card._timeLeft) card._timeLeft.textContent = formatTimeLeft(remainingMs);
-    });
-  }
+/* LIVE SYNC — LISTEN FOR CHANGES */
+TASKS_REF.on("value", snap => {
+    const tasks = snap.val() || {};
+    render(tasks);
+});
 
-  // wire up add button & enter key
-  addBtn.addEventListener("click", () => {
-    addTask(input.value);
-    input.value = "";
-    input.focus();
-  });
+/* INPUT HANDLERS */
+document.getElementById("add-btn").onclick = () => {
+    const name = document.getElementById("task-name").value.trim();
+    if (name) addTask(name);
+    document.getElementById("task-name").value = "";
+};
 
-  input.addEventListener("keydown", (e) => {
+document.getElementById("clear-btn").onclick = clearAll;
+
+document.getElementById("task-name").onkeydown = e => {
     if (e.key === "Enter") {
-      addTask(input.value);
-      input.value = "";
+        const name = e.target.value.trim();
+        if (name) addTask(name);
+        e.target.value = "";
     }
-  });
-
-  clearBtn.addEventListener("click", clearAll);
-
-  // initialize render
-  render();
-
-  // update every second for smooth countdown
-  setInterval(liveUpdate, 1000);
-
-  // occasionally re-render full list to ensure ordering remains correct (every 10s)
-  setInterval(render, 10000);
-
-  // expose small debugging helpers on window (optional)
-  window.dailyTasks = {
-    get: () => tasks,
-    add: (name) => { addTask(name); },
-    clear: () => { tasks = []; save(); render(); }
-  };
-})();
+};
 </script>
 
 </body>
