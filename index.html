@@ -550,9 +550,13 @@ function buildTaskCard(task) {
     btnRow.className = "btn-row";
 
     const cBtn = document.createElement("button");
-    cBtn.className = "complete-btn";
-    cBtn.textContent = "Wake Up Task";  // updated label
-    cBtn.onclick = () => completeTask(task.id, task);
+cBtn.className = "complete-btn";
+
+// ⭐ Change text depending on expiration
+cBtn.textContent = isExpired ? "Wake Up Task" : "Complete";
+
+cBtn.onclick = () => completeTask(task.id, task);
+
 
     const dBtn = document.createElement("button");
     dBtn.className = "delete-btn";
