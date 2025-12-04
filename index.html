@@ -37,7 +37,6 @@ button.btn {
     box-shadow:0 0 10px #000;
 }
 #add-btn { background:linear-gradient(90deg,#FFF4C2,#FFD700,#CC9A00); color:#000; }
-#clear-btn { background:#ffffff26; color:#fff; }
 
 #tasks-container { display:flex; flex-direction:column; gap:20px; }
 
@@ -161,7 +160,6 @@ button.btn {
 <div id="add-area">
     <input id="task-name" placeholder="New task..." />
     <button id="add-btn" class="btn">Add</button>
-    <button id="clear-btn" class="btn">Clear</button>
 </div>
 
 <div id="tasks-container"></div>
@@ -324,16 +322,6 @@ async function deleteTask(id, task) {
     TASKS_REF.child(id).remove();
 }
 
-async function clearAll() {
-    const ok = await showModal({
-        title: "Clear all tasks?",
-        message: "This cannot be undone.",
-        confirmText: "Clear"
-    });
-    if (!ok) return;
-
-    TASKS_REF.remove();
-}
 
 /* ===========================
    FULL INFO MODAL (TASK TITLE EXPANSION)
@@ -443,14 +431,7 @@ document.getElementById("add-btn").onclick = () => {
     if (name) addTask(name);
     document.getElementById("task-name").value = "";
 };
-document.getElementById("clear-btn").onclick = clearAll;
-document.getElementById("task-name").onkeydown = e => {
-    if (e.key === "Enter") {
-        const name = e.target.value.trim();
-        if (name) addTask(name);
-        e.target.value = "";
-    }
-};
+
 </script>
 
 </body>
