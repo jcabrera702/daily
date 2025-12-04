@@ -149,6 +149,71 @@ button.btn {
     opacity: .95;
 }
 
+/* LARGE TASK ENTRY MODAL */
+.editor-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+}
+
+.editor-box {
+    width: 90%;
+    max-width: 450px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    color: white;
+}
+
+.editor-box h2 {
+    margin-bottom: 12px;
+}
+
+.editor-text {
+    width: 100%;
+    min-height: 120px;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-size: 1rem;
+    line-height: 1.4em;
+}
+
+.editor-actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.editor-btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.editor-confirm {
+    background: linear-gradient(90deg,#32ff4d,#4dff87);
+}
+
+.editor-cancel {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+
 </style>
 
 </head>
@@ -158,7 +223,7 @@ button.btn {
 <div class="subtitle">Syncs live with anyone you share this with.</div>
 
 <div id="add-area">
-    <input id="task-name" placeholder="New task..." />
+    <input id="task-name" placeholder="New task..." readonly />
     <button id="add-btn" class="btn">Add</button>
 </div>
 
@@ -166,6 +231,7 @@ button.btn {
 
 <div id="full-info-root" style="display:none;"></div>
 <div id="modal-root" style="display:none;"></div>
+<div id="task-editor-root" style="display:none;"></div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
@@ -287,6 +353,54 @@ function showModal(opts) {
         modalRoot.querySelector(".confirm").onclick = () => { modalRoot.style.display = "none"; resolve(true); };
     });
 }
+
+/* ===========================
+   MULTI-LINE TASK EDITOR
+=========================== */
+
+function openTaskEditor() {
+    const root = document.getElementById("task-editor-root");
+    root.style.display = "";
+
+    root.innerHTML = `
+        <div class="editor-backdrop" id="editor-bg">
+            <div class="editor-box">
+                <h2>New Task</h2>
+                <textarea class="editor-text" id="editor-input" placeholder="Type your task..."></textarea>
+                <div class="editor-actions">
+                    <button class="editor-btn editor-cancel" id="editor-cancel">Cancel</button>
+                    <button class="editor-btn editor-confirm" id="editor-add">Add Task</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const input = document.getElementById("editor-input");
+    input.focus();
+
+    // add button
+    document.getElementById("editor-add").onclick = () => {
+        const val = input.value.trim();
+        if (val) {
+            addTask(val);
+        }
+        closeTaskEditor();
+    };
+
+    // cancel
+    document.getElementById("editor-cancel").onclick = closeTaskEditor;
+    document.getElementById("editor-bg").onclick = (e) => {
+        if (e.target.id === "editor-bg") closeTaskEditor();
+    };
+}
+
+function closeTaskEditor() {
+    const root = document.getElementById("task-editor-root");
+    root.style.display = "none";
+    root.innerHTML = "";
+}
+
+
 
 function addTask(name) {
     const id = Date.now();
@@ -425,12 +539,14 @@ TASKS_REF.on("value", snap => {
     render(tasks);
 });
 
-/* Input handlers */
-document.getElementById("add-btn").onclick = () => {
-    const name = document.getElementById("task-name").value.trim();
-    if (name) addTask(name);
-    document.getElementById("task-name").value = "";
-};
+/* Input handlers for NEW editor modal */
+
+/* When tapping the New Task box, open the editor modal */
+document.getElementById("task-name").onclick = openTaskEditor;
+
+/* Allow the main "Add" button to ALSO open the modal */
+document.getElementById("add-btn").onclick = openTaskEditor;
+
 
 </script>
 
