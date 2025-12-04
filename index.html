@@ -214,6 +214,41 @@ button.btn {
     background: rgba(255,255,255,0.15);
     color: #fff;
 }
+/* Expired tasks */
+.task.expired {
+    opacity: 0.55;
+    filter: grayscale(60%);
+    border: 1px solid rgba(255,0,0,0.3);
+}
+
+.task-title.sleepy {
+    opacity: 0.75;
+    filter: blur(0.4px);
+}
+
+.expired-indicator {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.expired-indicator .dot {
+    width: 8px;
+    height: 8px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    animation: pulse-dot 1.4s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.4; }
+    100% { transform: scale(1); opacity: 1; }
+}
+/* End expired tasks */
 
 
 </style>
@@ -468,14 +503,26 @@ function buildTaskCard(task) {
     const card = document.createElement("div");
     card.className = "task";
 
+    const hp = healthPercent(task.lastDone);
+    const isExpired = hp <= 0;
+
+    if (isExpired) card.classList.add("expired");
+
+    // ⭐ Task asleep indicator
+    if (isExpired) {
+        const expireNote = document.createElement("div");
+        expireNote.className = "expired-indicator";
+        expireNote.innerHTML = `<div class="dot"></div> Task is asleep`;
+        card.prepend(expireNote);
+    }
+
     const title = document.createElement("div");
     title.className = "task-title";
-    title.innerHTML = `
-    <div class="preview-fade">${task.name}</div>
-`;
-title.onclick = () => showFullInfo(task);
-title.onclick = () => showFullInfo(task);
+    title.innerHTML = `<div class="preview-fade">${task.name}</div>`;
+    title.onclick = () => showFullInfo(task);
 
+    // ⭐ Make title “sleepy”
+    if (isExpired) title.classList.add("sleepy");
 
     const barWrap = document.createElement("div");
     barWrap.className = "bar-wrapper";
@@ -483,7 +530,6 @@ title.onclick = () => showFullInfo(task);
     const bar = document.createElement("div");
     bar.className = "health-bar";
 
-    const hp = healthPercent(task.lastDone);
     bar.style.width = hp + "%";
     bar.style.background =
         hp > 60 ? "linear-gradient(90deg,#32ff4d,#4dff87)" :
@@ -497,7 +543,7 @@ title.onclick = () => showFullInfo(task);
 
     const timeLeft = document.createElement("div");
     timeLeft.className = "small";
-    const remainingMs = MS_PER_24H - (now() - task.lastDone);
+    const remainingMs = MS_PER_24H - (Date.now() - task.lastDone);
     timeLeft.textContent = "Expires in: " + formatTimeLeft(remainingMs);
 
     const btnRow = document.createElement("div");
@@ -505,7 +551,7 @@ title.onclick = () => showFullInfo(task);
 
     const cBtn = document.createElement("button");
     cBtn.className = "complete-btn";
-    cBtn.textContent = "Complete";
+    cBtn.textContent = "Wake Up Task";  // updated label
     cBtn.onclick = () => completeTask(task.id, task);
 
     const dBtn = document.createElement("button");
