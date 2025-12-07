@@ -249,6 +249,83 @@ button.btn {
     100% { transform: scale(1); opacity: 1; }
 }
 /* End expired tasks */
+/* Notes section */
+/* --- Enhanced Full Info Modal --- */
+
+.full-info-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* push modal higher */
+    padding-top: 8vh;
+    z-index: 99999;
+}
+
+.full-info-box {
+    width: 92%;
+    max-width: 440px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.45);
+    animation: popIn .25s ease;
+    color: #fff;
+}
+
+.full-info-box h2 {
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+}
+
+.info-section {
+    margin-bottom: 18px;
+    padding: 14px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    line-height: 1.4em;
+}
+
+.notes-box {
+    width: 100%;
+    min-height: 110px;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+}
+
+.detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+    gap: 10px;
+}
+
+.detail-btn {
+    padding: 10px 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.detail-save {
+    background: linear-gradient(90deg,#32ff4d,#4dff87);
+}
+
+.detail-close {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+/* End notes section */
 
 
 </style>
@@ -447,7 +524,9 @@ function addTask(name) {
         name,
         lastDone: now(),
         createdBy: user,
-        lastDoneBy: user
+        lastDoneBy: user,
+        notes: ""
+        
     });
 }
 
@@ -484,19 +563,52 @@ function showFullInfo(task) {
 
     root.innerHTML = `
         <div class="full-info-backdrop" id="fib">
-            <div class="full-info-box">
-                <h2>Details</h2>
-                <p>${task.name}</p>
+            <div class="full-info-box" id="fib-box">
+            
+                <h2>Task Details</h2>
+
+                <!-- TOP BOX: Task Name -->
+                <div class="info-section">
+                    ${task.name}
+                </div>
+
+                <!-- NOTES AREA -->
+                <h2 style="margin-bottom:6px;">Notes</h2>
+                <textarea class="notes-box" id="notes-input"
+                    placeholder="Add notes here...">${task.notes || ""}</textarea>
+
+                <div class="detail-actions">
+                    <button class="detail-btn detail-close" id="detail-close">Close</button>
+                    <button class="detail-btn detail-save" id="detail-save">Save Notes</button>
+                </div>
+
             </div>
         </div>
     `;
 
-    // Clicking anywhere closes it
-    document.getElementById("fib").onclick = () => {
+    // Close modal
+    document.getElementById("detail-close").onclick = () => {
         root.style.display = "none";
         root.innerHTML = "";
     };
+
+    // Save notes
+    document.getElementById("detail-save").onclick = () => {
+        const notes = document.getElementById("notes-input").value.trim();
+        TASKS_REF.child(task.id).update({ notes });
+        root.style.display = "none";
+        root.innerHTML = "";
+    };
+
+    // Click background closes modal
+    document.getElementById("fib").onclick = (e) => {
+        if (e.target.id === "fib") {
+            root.style.display = "none";
+            root.innerHTML = "";
+        }
+    };
 }
+
 
 
 function buildTaskCard(task) {
