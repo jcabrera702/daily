@@ -569,7 +569,8 @@ function showFullInfo(task) {
 
                 <!-- TOP BOX: Task Name -->
                 <div class="info-section">
-                    ${task.name}
+                    <textarea class="notes-box" id="task-name-input"
+                        placeholder="Task details...">${task.name || ""}</textarea>
                 </div>
 
                 <!-- NOTES AREA -->
@@ -579,7 +580,7 @@ function showFullInfo(task) {
 
                 <div class="detail-actions">
                     <button class="detail-btn detail-close" id="detail-close">Close</button>
-                    <button class="detail-btn detail-save" id="detail-save">Save Notes</button>
+                    <button class="detail-btn detail-save" id="detail-save">Save</button>
                 </div>
 
             </div>
@@ -592,10 +593,14 @@ function showFullInfo(task) {
         root.innerHTML = "";
     };
 
-    // Save notes
+    // Save task details + notes
     document.getElementById("detail-save").onclick = () => {
+        const name = document.getElementById("task-name-input").value.trim();
         const notes = document.getElementById("notes-input").value.trim();
-        TASKS_REF.child(task.id).update({ notes });
+        TASKS_REF.child(task.id).update({
+            name: name || task.name,
+            notes
+        });
         root.style.display = "none";
         root.innerHTML = "";
     };
