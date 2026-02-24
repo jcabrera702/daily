@@ -337,7 +337,7 @@ button.btn {
 <div class="subtitle">Syncs live with anyone you share this with.</div>
 
 <div id="add-area">
-    <input id="task-name" placeholder="New task..." readonly />
+    <input id="task-name" placeholder="New task..." />
     <button id="add-btn" class="btn">Add</button>
 </div>
 
@@ -350,19 +350,14 @@ button.btn {
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+<script src="./firebase-config.local.js"></script>
 
 <script>
 /* Firebase Config */
-const firebaseConfig = {
-  apiKey: "REDACTED_API_KEY",
-  authDomain: "daily-28c11.firebaseapp.com",
-  databaseURL: "https://daily-28c11-default-rtdb.firebaseio.com",
-  projectId: "daily-28c11",
-  storageBucket: "daily-28c11.firebasestorage.app",
-  messagingSenderId: "71161943370",
-  appId: "1:71161943370:web:c63ec6e9a5dc619d57ddb3",
-  measurementId: "G-GPPCWN5BK9"
-};
+const firebaseConfig = window.__FIREBASE_CONFIG__;
+if (!firebaseConfig) {
+    throw new Error("Missing Firebase config. Copy firebase-config.example.js to firebase-config.local.js and fill in your values.");
+}
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -708,13 +703,29 @@ TASKS_REF.on("value", snap => {
     render(tasks);
 });
 
-/* Input handlers for NEW editor modal */
+/* Input handlers for NEW editor modal + direct typing */
+const taskNameInput = document.getElementById("task-name");
 
-/* When tapping the New Task box, open the editor modal */
-document.getElementById("task-name").onclick = openTaskEditor;
+function addFromMainInput() {
+    const value = taskNameInput.value.trim();
+    if (!value) return false;
+    addTask(value);
+    taskNameInput.value = "";
+    return true;
+}
 
-/* Allow the main "Add" button to ALSO open the modal */
-document.getElementById("add-btn").onclick = openTaskEditor;
+taskNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addFromMainInput();
+    }
+});
+
+document.getElementById("add-btn").onclick = () => {
+    if (!addFromMainInput()) {
+        openTaskEditor();
+    }
+};
 
 
 </script>
