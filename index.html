@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#6c5ce7" />
 
 <link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:," />
 
 <style>
 /* SAME DESIGN AS BEFORE (unchanged) */
@@ -350,13 +351,13 @@ button.btn {
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
-<script src="./firebase-config.local.js"></script>
+<script src="./firebase-config.js"></script>
 
 <script>
 /* Firebase Config */
 const firebaseConfig = window.__FIREBASE_CONFIG__;
 if (!firebaseConfig) {
-    throw new Error("Missing Firebase config. Copy firebase-config.example.js to firebase-config.local.js and fill in your values.");
+    throw new Error("Missing Firebase config. Add firebase-config.js with window.__FIREBASE_CONFIG__.");
 }
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();

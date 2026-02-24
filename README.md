@@ -8,6 +8,14 @@
 
 `firebase-config.local.js` is git-ignored so your keys are not committed.
 
+## GitHub Pages config
+
+GitHub Pages loads Firebase config from `firebase-config.js`.
+
+- Keep `firebase-config.js` in the repo for deployment.
+- The app reads config from `window.__FIREBASE_CONFIG__` at startup.
+- Task data is stored in Firebase Realtime Database, not browser local storage.
+
 ## Important security follow-up
 
 Because the key was already committed, do this now:
